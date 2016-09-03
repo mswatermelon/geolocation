@@ -3,31 +3,32 @@ body, html {
     margin: 0;
     width: 100%;
     height: 100%;
-}
-#map {
-    width: 100%;
-    height: 100%;
+    font-family: 'Fira Sans';
 }
 input[type=text], textarea, #header {
     display: block;
     box-sizing: border-box;
 }
-.add-button{
-    width:87px;
-    height:30px;
-    color: #FFFFFF;
-    font-size: 10pt;
-    text-align: center;
-    cursor: pointer;
-    text-decoration: none;
-    outline: none;
-    border: none;
-    border-radius: 15px;
-    background:url('images/add.png') no-repeat center center;
+#map {
+    width: 100%;
+    height: 100%;
 }
-.add-button:active {
-    box-shadow: 0 2px #4f4f4f;
-    transform: translateY(2px);
+#main-div {
+    width: 379px;
+    height: 527px;
+    background:url('images/baloon-background.png') no-repeat center center;
+}
+#main-div input[type=text], #main-div textarea {
+    width: 95%;
+}
+#main-div input[type=text] {
+    height: 30px;
+}
+#main-div textarea {
+    height: 130px;
+}
+.add-comment {
+    margin: 40px 10px 10px 10px;
 }
 #header {
     width: 100%;
@@ -46,20 +47,42 @@ input[type=text], textarea, #header {
     border-right: 7px solid transparent;
 }
 #address {
-    margin: 15px;
+    padding: 10px 20px 10px 45px;
+    color: #FFFFFF;
+    font-size: 8pt;
 }
 .close-button{
     display:block;
     position:absolute;
     top:15px;
-    right:15px;
+    left:355px;
     width:14px;
     height:14px;
     cursor: pointer;
-    background:url('img/main_x.png') no-repeat center center;
+    background:url('images/close.png') no-repeat center center;
 }
-#main-div {
-    width: 379px;
-    height: 527px;
-    background:url('images/baloon-background.png') no-repeat center center;
+.comments {
+    overflow: auto;
+    height: 150px;
+    margin: 10px;
+}
+.add-button{
+    width:90px;
+    height:30px;
+    position: absolute;
+    top: 480px;
+    left: 270px;
+    color: #FFFFFF;
+    font-size: 10pt;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    outline: none;
+    border: none;
+    border-radius: 10px;
+    background:url('images/add.png') no-repeat center center;
+}
+.add-button:active {
+    box-shadow: 0 2px #4f4f4f;
+    transform: translateY(2px);
 }

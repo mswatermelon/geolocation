@@ -61,14 +61,18 @@ function init () {
                 // contentHeader: firstGeoObject.properties.get('text'),
                 contentBody:
                 "<p id=\"address\">" + firstGeoObject.properties.get('text') + "</p>" +
-                "<input type='text' name='name'>" +
-                "<input type='text' name='place'>" +
-                "<textarea name='comment'></textarea>" +
+                "<a class=\"close-button\"></a>" +
+                "<div class=\"comments\"></div>" +
+                "<div class=\"add-comment\">" +
+                    "<input type='text' name='name'>" +
+                    "<input type='text' name='place'>" +
+                    "<textarea name='comment'></textarea>" +
+                "</div>" +
                 "<button class='add-button'>Добавить</button>"
             },{
-                contentBodyLayout: ymaps.templateLayoutFactory.createClass(
+                layout: ymaps.templateLayoutFactory.createClass(
                     "<div id=\"main-div\">" +
-                    "$[data.contentBody]" +
+                    "$[contentBody]" +
                     "</div>"
                 )
             });
