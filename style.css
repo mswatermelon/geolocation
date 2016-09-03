@@ -1,0 +1,65 @@
+body, html {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+#map {
+    width: 100%;
+    height: 100%;
+}
+input[type=text], textarea, #header {
+    display: block;
+    box-sizing: border-box;
+}
+.add-button{
+    width:87px;
+    height:30px;
+    color: #FFFFFF;
+    font-size: 10pt;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    outline: none;
+    border: none;
+    border-radius: 15px;
+    background:url('images/add.png') no-repeat center center;
+}
+.add-button:active {
+    box-shadow: 0 2px #4f4f4f;
+    transform: translateY(2px);
+}
+#header {
+    width: 100%;
+    height: 45px;
+    color: white;
+    position: absolute;
+    top: 0;
+}
+#header:after {
+    content: '';
+    position: relative;
+    top: 15px;
+    float: right;
+    border-top: 7px solid #FFFFFF;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+}
+#address {
+    margin: 15px;
+}
+.close-button{
+    display:block;
+    position:absolute;
+    top:15px;
+    right:15px;
+    width:14px;
+    height:14px;
+    cursor: pointer;
+    background:url('img/main_x.png') no-repeat center center;
+}
+#main-div {
+    width: 379px;
+    height: 527px;
+    background:url('images/baloon-background.png') no-repeat center center;
+}
