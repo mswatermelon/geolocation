@@ -6,7 +6,7 @@
 ymaps.ready(init);
 
 function init () {
-    let myMap;
+    let myMap, cluster, customItemContentLayout;
     // Создание экземпляра карты и его привязка к контейнеру с
     // заданным id ("map").
     myMap = new ymaps.Map('map', {
@@ -15,22 +15,38 @@ function init () {
         center: [55.76, 37.64], // Москва
         zoom: 10
     });
+    // Создаем собственный макет с информацией о выбранном геообъекте.
+   customItemContentLayout = ymaps.templateLayoutFactory.createClass(
+        // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
+        '<h2 class=ballon_place>{{ properties.mainComment.place|raw }}</h2>' +
+        '<div class=ballon_address>{{ properties.mainComment.address|raw }}</div>' +
+        '<div class=ballon_comment>{{ properties.mainComment.comment|raw }}</div>' +
+        '<div class=ballon_date>{{ properties.mainComment.date|raw }}</div>'
+    );
+
+    clusterer = new ymaps.Clusterer({
+        clusterDisableClickZoom: true,
+        preset: 'islands#invertedOrangeClusterIcons',
+        clusterOpenBalloonOnClick: true,
+        // Устанавливаем стандартный макет балуна кластера "Карусель".
+        clusterBalloonContentLayout: 'cluster#balloonCarousel',
+        // Устанавливаем собственный макет.
+        clusterBalloonItemContentLayout: customItemContentLayout,
+        // Устанавливаем режим открытия балуна.
+        // В данном примере балун никогда не будет открываться в режиме панели.
+        clusterBalloonPanelMaxMapArea: 0,
+        // Устанавливаем размеры макета контента балуна (в пикселях).
+        clusterBalloonContentLayoutWidth: 200,
+        clusterBalloonContentLayoutHeight: 130,
+        // Устанавливаем максимальное количество элементов в нижней панели на одной странице
+        clusterBalloonPagerSize: 5
+    });
 
     // Слушаем клик на карте.
     myMap.events.add('click', function (e) {
         let coords = e.get('coords');
 
-        createBaloon(coords);/*.then(function (balloon) {
-            console.log(balloon);
-            document.addEventListener('click', function (e) {
-                if (e.target.getAttribute('class') == 'add-button'){
-                    let myPlacemark = createPlacemark(coords);
-                    myPlacemark.balloon = balloon;
-                    balloon.close();
-                    myMap.geoObjects.add(myPlacemark);
-                }
-            });
-        });*/
+        createBaloon(coords);
     });
 
     // Создание метки.
@@ -62,20 +78,19 @@ function init () {
     function createBaloon(coords) {
         return ymaps.geocode(coords).then(function (res) {
             let firstGeoObject = res.geoObjects.get(0);
-
-            let myPlacemark = new ymaps.Placemark(coords, {
-                iconCaption: 'поиск...',
+            let balloon = myMap.balloon.open(coords, {
                 comments: [{header: "Отзывов пока нет..."}]
             },{
                 iconLayout: 'default#image',
                 iconImageHref: 'images/active.png',
-                balloonLayout: ymaps.templateLayoutFactory.createClass(
+                layout: ymaps.templateLayoutFactory.createClass(
                     "<div class=\"main-div\">" +
                     "<p class=\"address\">" + firstGeoObject.properties.get('text') + "</p>" +
                     "<a class=\"close-button\"></a>" +
                     "<div class=\"comments\">" +
-                    '{% for comment in properties.comments %}' +
+                    '{% for comment in comments %}' +
                         '<p>{{ comment.header }}</p>' +
+                        '<p>{{ comment.name }}</p>' +
                         '<p>{{ comment.text}}</p>' +
                     '{% endfor %}' +
                     "</div>" +
@@ -93,6 +108,7 @@ function init () {
                             this.constructor.superclass.build.call(this);
                             // А затем выполняем дополнительные действия.
                             document.querySelector('.add-button').addEventListener('click', this.onButtonClick);
+                            document.querySelector('.close-button').addEventListener('click', this.onCloseButtonClick);
                             console.log(this);
                         },
 
@@ -102,8 +118,13 @@ function init () {
                             // Выполняем действия в обратном порядке - сначала снимаем слушателя,
                             // а потом вызываем метод clear родительского класса.
                             console.log(this);
+                            document.querySelector('.close-button').addEventListener('click', this.onCloseButtonClick);
                             document.querySelector('.add-button').removeEventListener('click', this.onButtonClick);
                             this.constructor.superclass.clear.call(this);
+                        },
+
+                        onCloseButtonClick: function () {
+                            myMap.balloon.close();
                         },
 
                         onButtonClick: function () {
@@ -111,10 +132,8 @@ function init () {
                                 place = document.querySelector('input[name="place"]'),
                                 comment = document.querySelector('textarea[name="comment"]'),
                                 now = new Date(),
-                                newContent;
-
-                            let newComments = [],
-                                comments = myPlacemark.properties.get("comments");
+                                newComments = [],
+                                comments = myMap.balloon.getData().comments;
                             console.log(comments);
                             for(let comm of comments){
                                 if (comm.header != "Отзывов пока нет...") {
@@ -122,20 +141,59 @@ function init () {
                                 }
                             }
                             console.log(newComments);
+                            let dateFormat = function (now) {
+                                year = "" + now.getFullYear();
+                                month = "" + (now.getMonth() + 1); if (month.length == 1) { month = "0" + month; }
+                                day = "" + now.getDate(); if (day.length == 1) { day = "0" + day; }
+                                hour = "" + now.getHours(); if (hour.length == 1) { hour = "0" + hour; }
+                                minute = "" + now.getMinutes(); if (minute.length == 1) { minute = "0" + minute; }
+                                second = "" + now.getSeconds(); if (second.length == 1) { second = "0" + second; }
+                                return year + "." + month + "." + day + " " + hour + ":" + minute + ":" + second;
+                            };
                             newComments.push({
-                                header: `${name.value} ${place.value} ${now.toString()}`,
+                                header: `${name.value} ${place.value} ${dateFormat(now)}`,
                                 text: `${comment.value}`
                             });
+                            newMarkComment = {
+                                comment: `${comment.value}`,
+                                place: `${place.value}`,
+                                date: `${dateFormat(now)}`,
+                                address: `${firstGeoObject.properties.get('text')}`,
+                                header: `${name.value} ${place.value} ${dateFormat(now)}`,
+                                text: `${comment.value}`
+                            };
 
                             // console.log(comments.innerHTML);
-                            myPlacemark.properties.set("comments", newComments)
+                            myMap.balloon.setData({"comments": newComments});
+                            let myPlacemark = new ymaps.Placemark(coords, {
+                                mainComment: newMarkComment,
+                            },{
+                                iconLayout: 'default#image',
+                                iconImageHref: 'images/active.png',
+                                balloonLayout: ymaps.templateLayoutFactory.createClass(
+                                    "<div class=\"main-div\">" +
+                                    "<p class=\"address\">" + firstGeoObject.properties.get('text') + "</p>" +
+                                    "<a class=\"close-button\"></a>" +
+                                    "<div class=\"comments\">" +
+                                    '<p>{{ properties.mainComment.header}}</p>' +
+                                    '<p>{{ properties.mainComment.text}}</p>' +
+                                    "</div>" +
+                                    "<div class=\"add-comment\">" +
+                                    "<input type='text' name='name' placeholder='Ваше имя'>" +
+                                    "<input type='text' name='place' placeholder='Укажите место'>" +
+                                    "<textarea name='comment' placeholder='Поделитесь впечатлениями'></textarea>" +
+                                    "</div>" +
+                                    "<button class='add-button'>Добавить</button>" +
+                                    "</div>"
+                                )
+                            });
+                            clusterer.add(myPlacemark);
                         }
                     }
                 )
             });
 
-            myMap.geoObjects.add(myPlacemark);
-            myPlacemark.balloon.open();
+            myMap.geoObjects.add(clusterer);
         });
     }
 }
